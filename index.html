@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css"
+    />
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+
+    <style>
+      .blink {
+        animation: blinker 1s linear infinite;
+      }
+      @keyframes blinker {
+        100% {
+          opacity: 50%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <v-app>
+        <p class="text-center pt-10">Личный Кабинет Клиента (ЛКК)</p>
+        <v-main>
+          <v-form>
+            <v-container>
+              <v-col cols="12">
+                <v-text-field
+                  clearable
+                  label="Фамилия"
+                  v-model="lastname"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12">
+                <v-text-field
+                  clearable
+                  required
+                  label="Имя"
+                  v-model="firstname"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12">
+                <v-text-field
+                  clearable
+                  label="Отчество"
+                  v-model="middlename"
+                ></v-text-field>
+              </v-col>
+              <div v-if="firstname">
+                <v-col cols="12">
+                  <v-text-field
+                    clearable
+                    label="эл. почта"
+                    :rules="[rules.email]"
+                    v-model="email"
+                  >
+                    <template v-if="email && confirmemail" v-slot:prepend>
+                      <v-tooltip right>
+                        <template v-slot:activator="{ on }">
+                          <v-btn
+                            fab
+                            small
+                            color="warning"
+                            class="mt-n3"
+                            @click="confirmemailmsg"
+                          >
+                            <v-icon v-on="on">mdi-email</v-icon>
+                          </v-btn>
+                        </template>
+                        Подтвердить
+                      </v-tooltip>
+                    </template>
+                  </v-text-field>
+                </v-col>
+                <v-col cols="12">
+                  <v-text-field
+                    clearable
+                    label="моб. телефон"
+                    :rules="[rules.phone]"
+                    v-model="phone"
+                  >
+                    <template v-if="phone && confirmphone" v-slot:prepend>
+                      <v-tooltip right>
+                        <template v-slot:activator="{ on }">
+                          <v-btn
+                            fab
+                            small
+                            color="warning"
+                            class="mt-n3 blink"
+                            @click="confirmphonemsg"
+                          >
+                            <v-icon v-on="on">mdi-phone</v-icon>
+                          </v-btn>
+                        </template>
+                        Подтвердить
+                      </v-tooltip>
+                    </template>
+                  </v-text-field>
+                </v-col>
+              </div>
+              <v-col cols="12" v-if="firstname && (email || phone)">
+                <v-subheader class="pa-0">
+                  Рассылка уведомлений: {{ subscriblist[subscribe] }}
+                </v-subheader>
+                <v-sheet>
+                  <v-switch
+                    inset
+                    label="эл. почта"
+                    v-model="subscribe"
+                    :disabled="confirmemail || !email"
+                    value="0"
+                  >
+                  </v-switch>
+                  <v-switch
+                    inset
+                    label="моб. телефон"
+                    v-model="subscribe"
+                    :disabled="confirmphone || !phone"
+                    value="1"
+                  >
+                  </v-switch>
+                </v-sheet>
+                <div class="text-center" v-if="subscribe">
+                  <v-btn color="primary" @click="saveformlkk">Сохранить</v-btn>
+                </div>
+              </v-col>
+            </v-container>
+          </v-form>
+        </v-main>
+      </v-app>
+    </div>
+
+    <script>
+      new Vue({
+        el: "#app",
+        vuetify: new Vuetify(),
+        data: {
+          lastname: "",
+          firstname: "",
+          middlename: "",
+          email: "",
+          phone: "+7(999) 999-99-99",
+          confirmemail: Math.random() < 0.3,
+          confirmphone: true,
+          subscribe: null,
+          subscriblist: ["email", "phone"],
+          rules: {
+            email: (value) => {
+              const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+              return pattern.test(value) || "некорректный e-mail";
+            },
+            phone: (value) => {
+              const pattern = /^(\+{0,})(\d{0,})([(]{1}\d{1,3}[)]{0,}){0,}(\s?\d+|\+\d{2,3}\s{1}\d+|\d+){1}[\s|-]?\d+([\s|-]?\d+){1,2}(\s){0,}$/;
+              return pattern.test(value) || "некорректный телефон";
+            }
+          }
+        },
+        methods: {
+          confirmemailmsg() {
+            const test = prompt("Введите код подтверждения из почты");
+            test && (this.confirmemail = false);
+          },
+          confirmphonemsg() {
+            const test = prompt("Введите код подтверждения из смс");
+            test && (this.confirmphone = false);
+          },
+          saveformlkk() {
+            alert("отправка данных формы на сервер");
+            document.location.reload();
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
